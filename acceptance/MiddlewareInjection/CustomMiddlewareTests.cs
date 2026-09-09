@@ -218,6 +218,7 @@ public class CustomMiddlewareTests : Steps
     }
 
     [Fact]
+    [Trait("PR", "1497")] // https://github.com/ThreeMammals/Ocelot/pull/1497
     public void Should_call_after_http_authentication_middleware()
     {
         var pipelineConfiguration = new OcelotPipelineConfiguration
@@ -234,7 +235,7 @@ public class CustomMiddlewareTests : Steps
 
         this.Given(x => x.GivenThereIsAServiceRunningOnPath(port, string.Empty))
             .And(x => GivenThereIsAConfiguration(configuration))
-            .And(x => GivenOcelotIsRunning(pipelineConfiguration))
+            .And(x => GivenOcelotIsRunningAsync(pipelineConfiguration))
             .When(x => WhenIGetUrlOnTheApiGateway("/"))
             .Then(x => ThenTheStatusCodeShouldBe(HttpStatusCode.OK))
             .And(x => x.ThenTheCounterIs(1))
@@ -242,6 +243,7 @@ public class CustomMiddlewareTests : Steps
     }
 
     [Fact]
+    [Trait("PR", "1497")] // https://github.com/ThreeMammals/Ocelot/pull/1497
     public void Should_call_after_authorization_middleware()
     {
         var pipelineConfiguration = new OcelotPipelineConfiguration
@@ -258,23 +260,11 @@ public class CustomMiddlewareTests : Steps
 
         this.Given(x => x.GivenThereIsAServiceRunningOnPath(port, string.Empty))
             .And(x => GivenThereIsAConfiguration(configuration))
-            .And(x => GivenOcelotIsRunning(pipelineConfiguration))
+            .And(x => GivenOcelotIsRunningAsync(pipelineConfiguration))
             .When(x => WhenIGetUrlOnTheApiGateway("/"))
             .Then(x => ThenTheStatusCodeShouldBe(HttpStatusCode.OK))
             .And(x => x.ThenTheCounterIs(1))
             .BDDfy();
-    }
-
-    private void GivenOcelotIsRunningWithMiddlewareBeforePipeline<T>(Func<object, Task> middleware)
-    {
-        var builder = TestHostBuilder.Create()
-            .ConfigureAppConfiguration(WithBasicConfiguration)
-            .ConfigureServices(WithAddOcelot)
-            .Configure(async app => await app
-                .UseMiddleware<T>(middleware)
-                .UseOcelot());
-        ocelotServer = new TestServer(builder);
-        ocelotClient = ocelotServer.CreateClient();
     }
 
     private Task<int> GivenOcelotIsRunningWithMiddlewareBeforePipeline<T>(Func<object, Task> middleware)
